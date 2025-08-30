@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Report a Problem — Yuva Shakti Sangathan</title>
+  <meta name="description" content="Report civic problems (roads, water, lights, health). Upload photos, get a report ID and export data for team review." />
+  <link rel="manifest" href="/site.webmanifest">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>.font-heading{font-family:'Poppins',system-ui;}</style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <header class="py-4 border-b bg-white">
+    <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+      <a href="index.html" class="font-heading font-bold">Yuva Shakti Sangathan</a>
+      <nav class="text-sm"><a href="index.html" class="mr-3">Home</a><a href="manifesto.html" class="mr-3">Manifesto</a><a href="team.html">Team</a></nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="font-heading text-2xl font-bold">Report a Local Problem</h1>
+    <p class="text-gray-600 mt-2">Quickly report civic problems. You will receive a unique Report ID to track progress. The system stores the report in your browser and allows export — perfect for offline collection.</p>
+
+    <div class="mt-6 grid md:grid-cols-2 gap-6">
+      <form id="reportForm" class="p-4 bg-white rounded-xl border shadow space-y-3" onsubmit="submitReport(event)">
+        <label class="text-sm">Full name (required)</label>
+        <input name="name" required class="w-full px-3 py-2 border rounded" placeholder="Your full name">
+
+        <label class="text-sm">Phone (optional)</label>
+        <input name="phone" class="w-full px-3 py-2 border rounded" placeholder="+91">
+
+        <label class="text-sm">Location / address (required)</label>
+        <input name="location" required class="w-full px-3 py-2 border rounded" placeholder="Area, city, landmark">
+
+        <label class="text-sm">Category</label>
+        <select name="category" class="w-full px-3 py-2 border rounded">
+          <option>Road / Pothole</option>
+          <option>Water / Drainage</option>
+          <option>Streetlight / Power</option>
+          <option>Health / Sanitation</option>
+          <option>Other</option>
+        </select>
+
+        <label class="text-sm">Short description</label>
+        <textarea name="description" rows="3" class="w-full px-3 py-2 border rounded" placeholder="Describe problem in 1–2 lines"></textarea>
+
+        <label class="text-sm">Attach photo(s) (optional)</label>
+        <input id="images" type="file" accept="image/*" multiple class="block">
+
+        <div class="flex gap-2">
+          <button type="submit" class="px-4 py-2 bg-yss text-white rounded">Submit Report</button>
+          <button type="button" onclick="openOfficialForm()" class="px-4 py-2 border rounded">Submit via Official Form</button>
+        </div>
+
+        <div id="result" class="hidden mt-2 p-3 rounded bg-emerald-50 border-l-4 border-emerald-400 text-sm"></div>
+      </form>
+
+      <aside class="p-4 bg-white rounded-xl border shadow">
+        <h4 class="font-heading text-lg font-semibold">Export & Admin</h4>
+        <p class="text-sm text-gray-600 mt-2">After collecting reports locally, export them as JSON for bulk processing. Admin page (passphrase required) shows saved reports on device.</p>
+        <div class="mt-3 flex flex-col gap-2">
+          <button onclick="exportReports()" class="px-3 py-2 border rounded">Export all reports</button>
+          <button onclick="clearReports()" class="px-3 py-2 border rounded">Clear local reports</button>
+          <a href="admin.html" class="px-3 py-2 border rounded text-center">Open Admin</a>
+        </div>
+        <div class="mt-4 text-xs text-gray-500">Tip: Use a dedicated tablet or phone at camps to collect reports offline and export them later.</div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="py-6 bg-white/80 border-t text-sm text-gray-600">
+    <div class="max-w-6xl mx-auto px-4">&copy; Yuva Shakti Sangathan 2025</div>
+  </footer>
+
+  <script>
+    // local storage keys
+    const REPORT_KEY = 'yss_reports_v1';
+    const FORM_LINK = 'https://forms.gle/qEKBJnuQ87dQXSET9';
+
+    async function submitReport(e){
+      e.preventDefault();
+      const form = e.target;
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      const files = document.getElementById('images').files;
+      const read = file => new Promise((res, rej) => {
+        const fr = new FileReader();
+        fr.onload = () => res(fr.result);
+        fr.onerror = rej;
+        fr.readAsDataURL(file);
+      });
+
+      const images = [];
+      for(let f of files) images.push(await read(f));
+
+      const id = 'YSS-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
+      const report = { id, createdAt: new Date().toISOString(), ...data, images };
+
+      const saved = JSON.parse(localStorage.getItem(REPORT_KEY) || '[]');
+      saved.push(report);
+      localStorage.setItem(REPORT_KEY, JSON.stringify(saved));
+
+      const result = document.getElementById('result');
+      result.classList.remove('hidden');
+      result.innerHTML = `Saved locally. Report ID: <strong>${id}</strong>. <br/> <small>Export or open Admin to manage.</small>`;
+      form.reset();
+      document.getElementById('images').value = null;
+    }
+
+    function exportReports(){
+      const saved = JSON.parse(localStorage.getItem(REPORT_KEY) || '[]');
+      if(!saved.length){ alert('No reports to export'); return; }
+      const blob = new Blob([JSON.stringify(saved, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'yss_reports_' + Date.now() + '.json'; a.click(); URL.revokeObjectURL(url);
+    }
+
+    function clearReports(){
+      if(confirm('Clear all saved reports on this device?')){ localStorage.removeItem(REPORT_KEY); alert('Cleared'); }
+    }
+
+    function openOfficialForm(){ window.open(FORM_LINK, '_blank'); }
+
+    // register service worker
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+</body>
+</html>
