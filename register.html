@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Register — Yuva Shakti Sangathan</title>
+  <meta name="description" content="Register with Yuva Shakti Sangathan — join as a member, volunteer or contributor." />
+  <link rel="manifest" href="/site.webmanifest">
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { yss: '#0ea5a4' }}}}
+  </script>
+  <style>.font-heading{font-family:'Poppins',system-ui;}</style>
+</head>
+<body class="bg-white text-gray-800">
+  <header class="py-4 border-b">
+    <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+      <a href="index.html" class="font-heading font-bold">Yuva Shakti Sangathan</a>
+      <nav class="text-sm"><a href="index.html" class="mr-3">Home</a><a href="report.html" class="mr-3">Report</a><a href="team.html">Team</a></nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="font-heading text-2xl font-bold">Official Registration</h1>
+    <p class="text-gray-600 mt-2">Use the official form to register — members, volunteers, contributors. The embedded form below is the canonical registration route.</p>
+
+    <div class="mt-6 grid lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2">
+        <!-- EMBED GOOGLE FORM: your provided short link -->
+        <!-- NOTE: If Google refuses embed, change to the full embed URL in your Google Forms settings (viewform?embedded=true) -->
+        <iframe id="regForm" src="https://forms.gle/qEKBJnuQ87dQXSET9" class="w-full h-[760px] border rounded-lg" frameborder="0"></iframe>
+
+        <div class="mt-3 flex gap-2">
+          <button onclick="toggleFormHeight()" class="px-3 py-2 border rounded">Toggle Height</button>
+          <button onclick="copyFormLink()" class="px-3 py-2 border rounded">Copy Form Link</button>
+          <a href="https://forms.gle/qEKBJnuQ87dQXSET9" target="_blank" class="px-3 py-2 border rounded">Open in new tab</a>
+        </div>
+      </div>
+
+      <aside class="p-4 rounded-xl border bg-white/90">
+        <h4 class="font-heading text-lg font-semibold">Scan to Register</h4>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?data=https://forms.gle/qEKBJnuQ87dQXSET9&size=220x220" alt="Register QR" class="rounded mt-3 mx-auto"/>
+        <p class="text-xs text-gray-600 mt-3">Scan with your phone to open the registration form directly.</p>
+        <div class="mt-4">
+          <strong>Why register?</strong>
+          <ul class="text-sm mt-2 text-gray-700 space-y-1">
+            <li>Join local chapters & fellowships</li>
+            <li>Receive updates on campaigns & events</li>
+            <li>Priority for Skill 360 & Health check programs</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="py-6 bg-white/80 border-t text-sm text-gray-600">
+    <div class="max-w-6xl mx-auto px-4">&copy; Yuva Shakti Sangathan 2025</div>
+  </footer>
+
+  <script>
+    const FORM_LINK = 'https://forms.gle/qEKBJnuQ87dQXSET9';
+    function toggleFormHeight(){
+      const f = document.getElementById('regForm');
+      f.style.height = f.style.height === '760px' ? '1080px' : '760px';
+    }
+    function copyFormLink(){ navigator.clipboard.writeText(FORM_LINK).then(()=>alert('Form link copied')); }
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+</body>
+</html>
