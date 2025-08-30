@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin — Yuva Shakti Sangathan</title>
+  <meta name="description" content="Admin tools to export and manage local reports & policy ideas. Passphrase protected." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>.font-heading{font-family:'Poppins',system-ui;}</style>
+</head>
+<body class="bg-white text-gray-800">
+
+  <header class="py-4 border-b">
+    <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+      <a href="index.html" class="font-heading font-bold">Yuva Shakti Sangathan — Admin</a>
+      <nav class="text-sm"><a href="index.html" class="mr-3">Home</a><a href="report.html">Report</a></nav>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <h1 class="font-heading text-2xl font-bold">Admin — Reports & Policy Exports</h1>
+    <p class="text-sm text-gray-600 mt-2">This admin panel reads data stored locally on this device by the public forms. Use the passphrase to unlock. (Default passphrase in script — change it before real use.)</p>
+
+    <div class="mt-6 p-4 border rounded-xl bg-white shadow">
+      <label class="text-sm">Enter admin passphrase</label>
+      <div class="flex gap-2 mt-2">
+        <input id="pass" class="px-3 py-2 border rounded flex-1" placeholder="Passphrase">
+        <button onclick="unlock()" class="px-3 py-2 border rounded bg-yss text-white">Unlock</button>
+      </div>
+
+      <div id="adminArea" class="hidden mt-6">
+        <div class="flex gap-2">
+          <button onclick="downloadAll()" class="px-3 py-2 border rounded">Export all reports (JSON)</button>
+          <button onclick="clearAll()" class="px-3 py-2 border rounded">Clear all local reports</button>
+          <button onclick="exportPolicies()" class="px-3 py-2 border rounded">Export policy ideas</button>
+        </div>
+
+        <div id="reportsList" class="mt-4 max-h-72 overflow-auto text-sm border rounded p-2"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="py-6 bg-white/80 border-t text-sm text-gray-600">
+    <div class="max-w-6xl mx-auto px-4">&copy; Yuva Shakti Sangathan 2025</div>
+  </footer>
+
+  <script>
+    const ADMIN_PASS = 'yssadmin2025'; // CHANGE BEFORE PRODUCTION
+    const REPORT_KEY = 'yss_reports_v1';
+    const POLICY_KEY = 'yss_policies_v1';
+
+    function unlock(){
+      const val = document.getElementById('pass').value.trim();
+      if(val === ADMIN_PASS){
+        document.getElementById('adminArea').classList.remove('hidden');
+        loadReports();
+      } else alert('Incorrect passphrase');
+    }
+
+    function loadReports(){
+      const saved = JSON.parse(localStorage.getItem(REPORT_KEY) || '[]');
+      const list = document.getElementById('reportsList'); list.innerHTML = '';
+      if(!saved.length) { list.innerHTML = '<div class="text-gray-500">No reports stored on this device.</div>'; return; }
+      saved.slice().reverse().forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'p-2 border-b';
+        div.innerHTML = `<div class="font-semibold">${r.id}</div><div class="text-xs text-gray-600">${r.createdAt}</div><div class="mt-1 text-sm">${escapeHtml(JSON.stringify(r, null, 2).slice(0, 500))}</div>`;
+        list.appendChild(div);
+      });
+    }
+
+    function downloadAll(){
+      const saved = JSON.parse(localStorage.getItem(REPORT_KEY) || '[]');
+      if(!saved.length){ alert('No reports'); return; }
+      const blob = new Blob([JSON.stringify(saved, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'yss_reports_' + Date.now() + '.json'; a.click(); URL.revokeObjectURL(url);
+    }
+
+    function clearAll(){
+      if(confirm('Delete all saved reports on this device?')){ localStorage.removeItem(REPORT_KEY); loadReports(); alert('Cleared'); }
+    }
+
+    function exportPolicies(){
+      const list = JSON.parse(localStorage.getItem(POLICY_KEY) || '[]');
+      if(!list.length){ alert('No policy ideas'); return; }
+      const blob = new Blob([JSON.stringify(list, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'yss_policies_' + Date.now() + '.json'; a.click(); URL.revokeObjectURL(url);
+    }
+
+    function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  </script>
+</body>
+</html>
